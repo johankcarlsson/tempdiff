@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui>
+  <style>
+.startApp {
+    position: relative;
+    min-height: 200px;
+    margin: 0 0 10px 0;
+    border: 1px solid #CCCCCC;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+  </style>
+  <p style="position: absolute; left: 0px; bottom: 0px; margin: 0px;">
+    <span class="label">App icons by: </span>
+    <a href="http://fasticon.com/" target="_blank">FastIcon.com</a>
+  </p>
+  <div style="float: left; width: 30%; height: 100%; border-right: solid 1px #6290d2; padding-right: 6px;">
+    <h3>
+      Apps:
+      <Icon id="appReload" ref="RELOAD" style="margin-left: 3px;" />
+      <Icon id="appLoading" ref="LOADING" style="margin-left: 3px;" />
+    </h3>
+    <div w="100%" h="100%-50" style="overflow-y: auto;">
+      <table style="border-collapse: collapse;">
+        <tbody id="appTable">
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <Pane id="inlinePane" w="70%-14" h="100%" style="float: left; padding-left: 6px;">
+    <Pane w="50%-25" class="startApp yellow" style="float: left; clear: left;">
+      <div style="padding: 0 10px; font-size: 13px;">
+        <img src="images/logotype-circle.png" style="float: right; width: 128px; height: 128px;" />
+        <h1 style="font-family: Trebuchet MS; margin: 6px 0;">Welcome to RapidContext!</h1>
+        <p style="margin-top: 6px;">RapidContext is a platform for dynamic web applications and tools.</p>
+        <p>If you haven't used it before, you can take the quick tour and
+        learn the basics in an easy, interactive fashion.</p>
+        <div style="float: right; margin: 12px 0;">
+          <a href="doc/changes.html" target="_blank">&#x25B6; Version History</a>
+        </div>
+        <Button id="tourButton" icon="NEXT" style="margin: 10px 0 10px 0;">Start Quick Tour</Button>
+      </div>
+    </Pane>
+  </Pane>
+  <Dialog id="tourDialog" title="RapidContext Quick Tour" center="false" resizeable="false" w="80%" h="190" style="z-index: 1000;">
+    <Wizard id="tourWizard" style="width: 100%; height: 100%; font-size: larger;">
+      <Pane pageTitle="Welcome to the Quick Tour of RapidContext!">
+        <ul>
+          <li>This tour will show you some of the basic functions in RapidContext.</li>
+          <li>The tour can be cancelled at any time by pressing the
+              <Icon ref="CLOSE_ACTIVE" /> icon on this dialog.</li>
+        </ul>
+      </Pane>
+      <Pane pageTitle="The Start App">
+        <ul>
+          <li>The <strong>Start</strong> app is the starting point for launching other apps.</li>
+          <li>Apps are launched by clicking their corresponding icon.</li>
+          <li>By holding <strong>Ctrl</strong> or <strong>Alt</strong>, the apps open in separate windows.</li>
+        </ul>
+        <Button id="tourStartLocate" icon="HELP">Locate</Button>
+      </Pane>
+      <Pane pageTitle="Using Help &amp; Docs">
+        <ul>
+          <li>This is the <strong>Help &amp; Docs</strong> app.</li>
+          <li>Here you'll find the user manual for RapidContext.</li>
+          <li>It also contains developer &amp; app documentation.</li>
+        </ul>
+        <Button id="tourHelpLocate" icon="HELP">Locate</Button>
+      </Pane>
+      <Pane pageTitle="App Switching &amp; Tabs">
+        <ul>
+          <li>Many apps can run at the same time, each in a separate tab.</li>
+          <li>Switching between apps is easy by clicking the tabs. The <Icon ref="CLOSE_ACTIVE" /> button closes the app.</li>
+          <li>You can also run several copies of a single app, e.g. to compare results or data.</li>
+        </ul>
+        <Button id="tourTabsLocate" icon="HELP">Locate</Button>
+      </Pane>
+      <Pane pageTitle="The User Menu">
+        <ul>
+          <li>At the top right corner of the screen is the user and environment information.</li>
+          <li>When passing the mouse pointer over it, the <strong>User Menu</strong> is shown.</li>
+          <li>This menu provides logout and password change functions.</li>
+        </ul>
+        <Button id="tourUserLocate" icon="HELP">Locate</Button>
+      </Pane>
+    </Wizard>
+  </Dialog>
+  <Pane id="tourLocator" style="position: absolute; z-index: 10000; border: 3px solid #88AACC; background: #DDEEFF; display: none;"></Pane>
+</ui>

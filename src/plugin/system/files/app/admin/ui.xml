@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui>
+  <TabContainer id="tabContainer" w="100%" h="100%">
+    <Pane id="cxnTab" pageTitle="Connections">
+      <div w="45%" h="100%" style="float: left; padding-right: 20px;">
+        <h3>
+          Connection List:
+          <Icon id="cxnValidate" ref="AUTOMATIC" tooltip="Check all connections" style="margin-left: 3px;" />
+          <Icon id="cxnReload" ref="RELOAD" style="margin-left: 3px;" />
+          <Icon id="cxnLoading" ref="LOADING" style="margin-left: 3px;" />
+        </h3>
+        <Table id="cxnTable" w="100%" h="100%-22">
+          <TableColumn title="Identifier" field="id" sort="asc" key="true" />
+          <TableColumn title="Status" field="status" />
+          <TableColumn title="Type" field="type" />
+          <TableColumn title="In Use" field="_usedChannels" type="number" />
+          <TableColumn title="Open" field="_openChannels" type="number" />
+          <TableColumn title="Last Access" field="_lastUsedTime" type="datetime" />
+        </Table>
+      </div>
+      <Form id="cxnForm" w="55%-30" h="100%" style="float: left; overflow-y: auto;">
+        <h3>
+          Connection Details:
+          <Icon id="cxnAdd" ref="ADD" style="margin-left: 3px;" />
+          <Icon id="cxnRemove" ref="REMOVE" hidden="true" style="margin-left: 3px;" />
+          <Icon id="cxnEdit" ref="EDIT" hidden="true" style="margin-left: 3px;" />
+        </h3>
+        <table>
+          <tbody>
+            <tr>
+              <th class="label" style="padding: 3px 4px 0 1px; width: 100px;">Identifier:</th>
+              <td>
+                <Field name="id" format="connection/" class="unimportant" />
+                <a id="cxnLink" href="#" target="_blank" class="hidden" title="View in storage browser">
+                  <Field name="id" />
+                  <Icon ref="EXPAND" style="margin-left: 3px;" />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Type:</th>
+              <td>
+                <Field name="type" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Plug-In:</th>
+              <td>
+                <Field name="plugin" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Description:</th>
+              <td>
+                <Field name="description" />
+              </td>
+            </tr>
+            <tr id="cxnTemplate" class="hidden">
+              <th class="label" style="padding-right: 4px;"></th>
+              <td class="preformatted"></td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Last Access:</th>
+              <td>
+                <Field name="lastAccess" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Channels:</th>
+              <td>
+                <Field name="_usedChannels" format="{} in use" /><br/>
+                <Field name="_openChannels" format="{} open" /><br/>
+                <Field name="_maxOpen" format="{} maximum open" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Form>
+      <Dialog id="cxnEditDialog" title="Edit Connection" modal="true" w="600" h="80%">
+        <h3>Edit Connection:</h3>
+        <Form id="cxnEditForm" w="100%" h="100%-60" style="overflow-y: auto; overflow-x: hidden;">
+          <table w="100%" style="border-collapse: collapse;">
+            <tbody>
+              <tr>
+                <th class="label" style="width: 100px; padding-top: 6px; padding-right: 4px;">Identifier:</th>
+                <td style="padding-top: 2px;">
+                  <span class="unimportant" style="padding-right: 3px;">/connection/</span>
+                  <TextField name="id" size="50" />
+                  <FormValidator name="id" regex="[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*" display="icon" message="Only alphanumeric characters allowed in identifier." />
+                  <div class="helptext">
+                    The unique connection identifier. Optionally prefixed with
+                    an environment path.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 2px;">Type:</th>
+                <td style="padding-top: 2px;">
+                  <select id="cxnEditType" name="type">
+                    <option value="">&lt; Select Type &gt;</option>
+                  </select>
+                  <FormValidator name="type" display="icon" message="A valid connection type must be selected." />
+                  <label class="unselectable" style="margin-left: 20px;">
+                    <input type="checkbox" id="cxnEditShowAll" name="_showAll" value="yes" />
+                    Show all parameters
+                  </label>
+                  <div id="cxnEditTypeDescr" class="helptext"></div>
+                </td>
+              </tr>
+              <tr id="cxnEditTemplate" class="hidden">
+                <th class="label" style="padding-top: 4px; padding-right: 4px;"></th>
+                <td></td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 2px;">Add Parameter:</th>
+                <td style="padding-top: 2px;">
+                  <TextField id="cxnEditAddParam" name="_add" size="25" />
+                  <Icon id="cxnEditAdd" ref="ADD" style="margin-left: 6px;" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="position: absolute; bottom: 10px; right: 12px;">
+            <Button id="cxnEditCancel" icon="CANCEL" style="margin-left: 10px;">Cancel</Button>
+            <Button id="cxnEditSave" icon="OK" highlight="true" style="margin-left: 10px;">Save</Button>
+          </div>
+        </Form>
+      </Dialog>
+    </Pane>
+    <Pane id="appTab" pageTitle="Apps">
+      <div w="35%" h="100%" style="float: left; padding-right: 20px;">
+        <h3>
+          App List:
+          <Icon id="appReload" ref="RELOAD" style="margin-left: 3px;" />
+          <Icon id="appLoading" ref="LOADING" style="margin-left: 3px;" />
+        </h3>
+        <Table id="appTable" w="100%" h="100%-22">
+          <TableColumn title="Identifier" field="id" sort="asc" key="true" />
+          <TableColumn title="Name" field="name" />
+          <TableColumn title="Version" field="version" />
+        </Table>
+      </div>
+      <Form id="appForm" w="65%-30" h="100%" style="float: left;">
+        <h3>App Details: <Icon ref="BLANK" /></h3>
+        <table>
+          <tbody>
+            <tr>
+              <td id="appIcon" style="padding-bottom: 6px;"></td>
+              <td>
+                <h2 style="margin: 0;"><Field name="name" /></h2>
+                <span style="white-space: pre-line;">
+                  <Field name="description" />
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding: 3px 4px 0 1px;">Identifier:</th>
+              <td>
+                <Field name="id" format="app/" class="unimportant" />
+                <a id="appLink" href="#" target="_blank" class="hidden" title="View in storage browser">
+                  <Field name="id" />
+                  <Icon ref="EXPAND" style="margin-left: 3px;" />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Version:</th>
+              <td>
+                <Field name="version" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Plug-In:</th>
+              <td>
+                <Field name="plugin" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Class Name:</th>
+              <td>
+                <Field name="className" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Launch Type:</th>
+              <td>
+                <Field name="launch" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Resources:</th>
+              <td>
+                <Table id="appResourceTable" hidden="true">
+                  <TableColumn title="Type" field="type" />
+                  <TableColumn title="URL" field="url" />
+                  <TableColumn title="Id" field="id" />
+                </Table>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding-top: 10px;">
+                <Button id="appLaunch" icon="OK" disabled="true" style="margin-right: 10px">
+                  Launch
+                </Button>
+                <Button id="appLaunchWindow" icon="EXPAND" disabled="true">
+                  Launch in new window
+                </Button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Form>
+    </Pane>
+    <Pane id="pluginTab" pageTitle="Plug-Ins">
+      <Form id="pluginUploadForm" w="100%" style="margin-bottom: 10px; border-bottom: solid 1px #6290d2; padding-bottom: 10px;">
+        <h3>Software Install &amp; Update:</h3>
+        <table>
+          <tbody>
+            <tr>
+              <th class="label" style="padding-right: 4px; padding-top: 4px;">Plug-in File:</th>
+              <td>
+                <FileStreamer id="pluginFile" url="rapidcontext/upload/plugin" />
+                <ProgressBar id="pluginProgress" style="width: 500px" />
+                <Pane id="pluginFileInfo" style="padding-left: 4px;">
+                  <strong><Field name="name" /></strong>,
+                  <Field name="approxSize" />,
+                  <Field name="mimeType" />
+                  <Icon id="pluginFileDelete" ref="DELETE" style="margin-left: 3px;" />
+                </Pane>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <Button id="pluginInstall" icon="PLUGIN" style="margin-top: 4px;">
+          Install / Update Plug-In
+        </Button>
+        <Button id="pluginReset" icon="RELOAD" style="margin-top: 4px; margin-left: 10px;">
+          Reset Server
+        </Button>
+      </Form>
+      <div w="45%" h="100%-100" style="float: left; padding-right: 20px;">
+        <h3>
+          Plug-In List:
+          <Icon id="pluginReload" ref="RELOAD" style="margin-left: 3px;" />
+          <Icon id="pluginLoading" ref="LOADING" style="margin-left: 3px;" />
+        </h3>
+        <Table id="pluginTable" w="100%" h="100%-22">
+          <TableColumn title="Status" field="loaded" type="boolean" />
+          <TableColumn title="Identifier" field="id" key="true" />
+          <TableColumn title="Version" field="version" />
+          <TableColumn title="Name" field="name" />
+        </Table>
+      </div>
+      <Form id="pluginForm" w="45%-30" h="100%-100" style="float: left;">
+        <h3>Plug-In Details: <Icon ref="BLANK" /></h3>
+        <table>
+          <tbody>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Identifier:</th>
+              <td>
+                <Field name="id" format="plugin/" class="unimportant" />
+                <Field name="id" style="font-weight: bold; color: #444;" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Version:</th>
+              <td>
+                <Field name="version" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Date:</th>
+              <td>
+                <Field name="date" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Storage:</th>
+              <td>
+                <a id="pluginLink" href="#" target="_blank" class="hidden" title="View in storage browser">
+                  <Field name="*" format="/storage/plugin/{id}/" />
+                  <Icon ref="EXPAND" style="margin-left: 3px;" />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Name:</th>
+              <td>
+                <Field name="name" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Description:</th>
+              <td>
+                <Field name="description" class="preformatted" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Copyright:</th>
+              <td>
+                <Field name="copyright" class="preformatted" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Java Class:</th>
+              <td>
+                <Field name="className" />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding-top: 4px;">
+                <Button id="pluginLoad" icon="OK" style="margin-right: 10px">
+                  Load
+                </Button>
+                <Button id="pluginUnload" icon="ERROR" style="margin-right: 10px">
+                  Unload
+                </Button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Form>
+    </Pane>
+    <Pane id="procTab" pageTitle="Procedures">
+      <div w="35%" h="100%" style="float: left; padding-right: 20px;">
+        <h3>
+          Procedure Names:
+          <Icon id="procTreeReload" ref="RELOAD" style="margin-left: 3px;" />
+          <Icon id="procTreeLoading" ref="LOADING" style="margin-left: 3px;" />
+        </h3>
+        <Tree id="procTree" w="100%" h="100%-22" />
+      </div>
+      <div w="65%-30" h="100%" style="float: left;">
+        <Form id="procForm" style="width: 100%; height: 100%;">
+          <h3>
+            Procedure Details:
+            <Icon id="procAdd" ref="ADD" style="margin-left: 3px;" />
+            <Icon id="procRemove" ref="REMOVE" style="margin-left: 3px;" />
+            <Icon id="procEdit" ref="EDIT" style="margin-left: 3px;" />
+            <Icon id="procReload" ref="RELOAD" style="margin-left: 3px;" />
+            <Icon id="procLoading" ref="LOADING" style="margin-left: 3px;" />
+          </h3>
+          <table>
+            <tbody>
+              <tr>
+                <th class="label" style="width: 15%; padding-right: 4px;">Name:</th>
+                <td>
+                  <Field name="name" />
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-right: 4px;">Type:</th>
+                <td>
+                  <Field name="type" />
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-right: 4px;">Plug-In:</th>
+                <td>
+                  <Field name="plugin" />
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-right: 4px;">Description:</th>
+                <td>
+                  <Field name="description" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <h3 style="margin-top: 6px;">
+            Procedure Call:
+            <Icon id="procExecLoading" ref="LOADING" style="margin-left: 3px;" />
+            <Icon ref="BLANK" />
+          </h3>
+          <table>
+            <tbody id="procArgTable">
+            </tbody>
+          </table>
+          <div style="margin-top: 6px;">
+            <Button id="procExec" icon="OK" disabled="true" style="margin-right: 10px;">
+              Execute
+            </Button>
+            <Button id="procBatch" icon="DELAY" disabled="true">
+              Execute Batch
+            </Button>
+          </div>
+          <Tree id="procExecResult" w="100%" h="10%" style="margin-top: 6px;">
+          </Tree>
+        </Form>
+      </div>
+      <Dialog id="procArgDialog" title="Edit Argument" modal="true" w="50%" h="75%" style="overflow: hidden;">
+        <Form id="procArgForm" style="width: 100%; height: 100%;">
+          <div class="unselectable" style="padding-bottom: 6px;">
+            <span class="label" style="padding-right: 4px;">Data Type:</span>
+            <label style="margin-right: 4px; font-weight: bold;">
+              <input type="radio" name="type" value="string" checked="checked" style="vertical-align: -20%;" />
+              String
+            </label>
+            <label style="margin-right: 4px; font-weight: bold;">
+              <input type="radio" name="type" value="json" style="vertical-align: -20%;" />
+              JSON
+            </label>
+          </div>
+          <TextArea name="value" w="100%-13" h="100%-65" />
+          <div style="position: absolute; bottom: 10px; right: 12px;">
+            <Button id="procArgCancel" icon="CANCEL" style="margin-left: 10px;">
+              Cancel
+            </Button>
+            <Button id="procArgSave" icon="OK" style="margin-left: 10px;">
+              Save
+            </Button>
+          </div>
+        </Form>
+      </Dialog>
+      <Dialog id="procEditDialog" title="Edit Procedure" modal="true" w="73%" h="90%">
+        <h3>Edit Procedure:</h3>
+        <Form id="procEditForm" w="100%" h="100%-60" style="overflow-y: auto;">
+          <table w="100%-30">
+            <tbody>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Name:</th>
+                <td style="width: 100%;">
+                  <TextField name="name" style="width: 100%;" />
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 2px;">Type:</th>
+                <td style="padding-top: 2px;">
+                  <select id="procEditType" name="type">
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Description:</th>
+                <td style=" width: 100%; padding-bottom: 4px;">
+                  <TextArea name="description" style="width: 100%;" rows="3" />
+                </td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Connections:</th>
+                <td id="procEditConns" style="width: 100%; padding-bottom: 4px;"></td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Data:</th>
+                <td id="procEditData" style="width: 100%; padding-bottom: 4px;"></td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Procedures:</th>
+                <td id="procEditProcs" style="width: 100%; padding-bottom: 4px;"></td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Arguments:</th>
+                <td id="procEditArgs" style="width: 100%; padding-bottom: 4px;"></td>
+              </tr>
+              <tr>
+                <th class="label" style="padding-top: 4px; padding-right: 4px;">Add New:</th>
+                <td style="width: 100%; padding-bottom: 4px;">
+                  <select id="procEditAddType" style="margin-right: 6px;">
+                    <option value="connection">Connection</option>
+                    <option value="data">Data</option>
+                    <option value="procedure">Procedure</option>
+                    <option value="argument">Argument</option>
+                  </select>
+                  <TextField id="procEditAddName" helpText="&lt; Enter new name &gt;" />
+                  <Icon id="procEditAdd" ref="ADD" style="margin-left: 6px;" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Form>
+        <div style="position: absolute; bottom: 10px; right: 12px;">
+          <Button id="procEditCancel" icon="CANCEL" style="margin-left: 10px;">
+            Cancel
+          </Button>
+          <Button id="procEditSave" icon="OK" style="margin-left: 10px;">
+            Save
+          </Button>
+        </div>
+      </Dialog>
+    </Pane>
+    <Pane id="batchTab" pageTitle="Batch">
+      <Form id="batchForm">
+        <h3>
+          Batch Control:
+          <Icon id="batchDelete" ref="DELETE" style="margin-left: 3px;" />
+          <Icon id="batchDelay" ref="DELAY" style="margin-left: 3px;" />
+          <Icon id="batchLoading" ref="LOADING" style="margin-left: 3px;" />
+        </h3>
+        <table>
+          <tbody>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Progress:</th>
+              <td style="width: 500px;">
+                <ProgressBar id="batchProgress" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Success:</th>
+              <td>
+                <Field name="success" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-right: 4px;">Failed:</th>
+              <td>
+                <Field name="failed" />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding-top: 4px;">
+                <Button id="batchResume" style="margin-top: 3px">Resume</Button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Form>
+    </Pane>
+    <Pane id="userTab" pageTitle="Users">
+      <div w="50%" h="100%" style="float: left; padding-right: 20px;">
+        <h3>
+          User List:
+          <Icon id="userReload" ref="RELOAD" style="margin-left: 3px;" />
+          <Icon id="userLoading" ref="LOADING" style="margin-left: 3px;" />
+        </h3>
+        <Table id="userTable" w="100%" h="100%-22">
+          <TableColumn title="Identifier" field="id" sort="asc" key="true" />
+          <TableColumn title="Name" field="name" />
+          <TableColumn title="Enabled" field="enabled" type="boolean" />
+          <TableColumn title="Description" field="description" maxLength="40" />
+        </Table>
+      </div>
+      <Form id="userForm" w="50%-30" h="100%" style="float: left;">
+        <h3>
+          Edit User:
+          <Icon id="userAdd" ref="ADD" style="margin-left: 3px;" />
+        </h3>
+        <table style="width: 100%;">
+          <tbody style="width: 100%;">
+            <tr>
+              <th class="label" style="padding-top: 4px; padding-right: 4px;" w="65">Id:</th>
+              <td w="100%-70">
+                <TextField id="userId" name="id" size="30" />
+                <FormValidator name="id" message="User id cannot be empty" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-top: 4px; padding-right: 4px;">Name:</th>
+              <td>
+                <TextField name="name" w="100%-20" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-top: 4px; padding-right: 4px;">Description:</th>
+              <td>
+                <TextArea name="description" rows="3" w="100%-20" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-top: 2px; padding-right: 4px;">Enabled:</th>
+              <td>
+                <input type="checkbox" name="enabled" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-top: 4px; padding-right: 4px;">Password:</th>
+              <td>
+                <TextField type="password" name="password" size="30" />
+                <Field name="passwordHint" style="padding-left: 10px;" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-top: 4px; padding-right: 4px;">Roles:</th>
+              <td>
+                <TextField name="roles" w="100%-20" />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding-top: 4px;">
+                <Button id="userSave" icon="OK" style="margin-right: 10px">
+                  Save
+                </Button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Form>
+    </Pane>
+    <Pane id="logTab" pageTitle="Logging">
+      <div w="100" h="60%" style="float: left; padding-right: 20px; padding-bottom: 6px;">
+        <Form id="logForm">
+          <h3>Log Level: <Icon ref="BLANK" /></h3>
+          <span id="logError" class="label"><input type="radio" name="level" value="Error" /> Error</span><br/>
+          <span id="logWarning" class="label"><input type="radio" name="level" value="Warning" /> Warning</span><br/>
+          <span id="logInfo" class="label"><input type="radio" name="level" value="Info" checked="true" /> Info</span><br/>
+          <span id="logTrace" class="label"><input type="radio" name="level" value="Trace" /> Trace</span>
+          <p style="padding-top: 20px;">Press refresh to update log entries table.</p>
+        </Form>
+      </div>
+      <div w="100%-120" h="60%" style="float: left; padding-bottom: 6px;">
+        <h3>
+          Log Entries:
+          <Icon id="logClear" ref="DELETE" style="margin-left: 3px;" />
+          <Icon id="logReload" ref="RELOAD" style="margin-left: 3px;" />
+        </h3>
+        <Table id="logTable" w="100%" h="100%-22">
+          <TableColumn title="Id" field="id" type="number" sort="desc" key="true" />
+          <TableColumn title="Time" field="time" type="time" />
+          <TableColumn title="Level" field="level" />
+          <TableColumn title="Context" field="context" />
+          <TableColumn title="Function" field="caller" />
+          <TableColumn title="Message" field="message" />
+        </Table>
+      </div>
+      <div w="25%" h="40%-20" style="float: left; padding-right: 20px; padding-top: 6px; border-top: solid 1px #6290d2;">
+        <h3>Stack Trace:</h3>
+        <pre id="logStack" w="100%" h="100%-25" style="overflow: auto;"></pre>
+      </div>
+      <div w="75%-25" h="40%-20" style="float: left; padding-top: 6px; border-top: solid 1px #6290d2;">
+        <h3>Log Data:</h3>
+        <p id="logData" w="100%" h="100%-25" style="overflow: auto;"></p>
+      </div>
+    </Pane>
+  </TabContainer>
+</ui>

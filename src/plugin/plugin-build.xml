@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project name="plugin" default="package">
+
+<!-- INITIALIZATION -->
+  <buildnumber />
+  <tstamp>
+    <format property="build.date" pattern="yyyy-MM-dd" />
+  </tstamp>
+  <property prefix="plugin" file="plugin.properties" />
+  <condition property="build.version" value="${plugin.version}.${build.number}">
+    <and>
+      <isset property="plugin.version" />
+      <not>
+        <isset property="build.version" />
+      </not>
+    </and>
+  </condition>
+  <condition property="build.version" value="${DSTAMP}">
+    <not>
+      <isset property="build.version" />
+    </not>
+  </condition>
+  <available property="build.java" file="src" type="dir" />
+  <path id="build.classpath">
+    <pathelement path="${java.class.path}" />
+    <fileset dir="lib" includes="**/*.jar" erroronmissingdir="false" />
+  </path>
+  <patternset id="pattern.srcfiles">
+    <include name="**/*.css" />
+    <include name="**/*.java" />
+    <include name="**/*.js" />
+    <include name="**/*.properties" />
+    <include name="**/*.xml" />
+  </patternset>
+
+
+<!-- CLEANING TARGETS -->
+  <target name="clean" depends="compile-clean,package-clean"
+          description="Removes intermediary files created during build." />
+
+
+<!-- COMPILATION TARGETS -->
+  <target name="compile" depends="compile-clean,compile-text,compile-java"
+          description="Compiles and prepares the plug-in source code.">
+  </target>
+
+  <target name="compile-clean" if="build.java">
+    <delete quiet="true">
+      <fileset dir="classes" />
+      <fileset dir="lib" includes="${plugin.id}-*.jar" />
+    </delete>
+  </target>
+
+  <target name="compile-text">
+    <fixcrlf srcdir="." eol="unix" eof="remove" tab="remove">
+      <patternset refid="pattern.srcfiles" />
+    </fixcrlf>
+    <replaceregexp match="\s+$" replace="" flags="g" byline="true">
+      <fileset dir=".">
+        <patternset refid="pattern.srcfiles" />
+      </fileset>
+    </replaceregexp>
+  </target>
+
+  <target name="compile-java" if="build.java">
+    <mkdir dir="classes" />
+    <javac srcdir="src"
+           destdir="classes"
+           classpathref="build.classpath"
+           target="1.5"
+           source="1.5"
+           debug="on"
+           deprecation="on" />
+    <mkdir dir="lib" />
+    <jar jarfile="lib/${plugin.id}-${build.version}.jar" level="9">
+      <fileset dir="classes" />
+    </jar>
+  </target>
+
+
+<!-- PACKAGING TARGETS -->
+  <target name="package" depends="compile,package-clean"
+          description="Packages the plugin files into proper format.">
+    <mkdir dir="tmp" />
+    <copy todir="tmp">
+      <fileset dir=".">
+        <patternset id="replace.files">
+          <include name="plugin.properties" />
+          <include name="platform.properties" />
+        </patternset>
+      </fileset>
+    </copy>
+    <replaceregexp match="version\s*=.*" replace="version = ${build.version}">
+      <fileset dir="tmp">
+        <patternset refid="replace.files" />
+      </fileset>
+    </replaceregexp>
+    <replaceregexp match="platform\s*=[ \t]*" replace="platform = ${build.platform}">
+      <fileset dir="tmp">
+        <patternset refid="replace.files" />
+      </fileset>
+    </replaceregexp>
+    <replaceregexp match="date\s*=.*" replace="date = ${build.date}">
+      <fileset dir="tmp">
+        <patternset refid="replace.files" />
+      </fileset>
+    </replaceregexp>
+    <zip destfile="${plugin.id}-${build.version}.plugin" level="9">
+      <fileset dir="tmp" />
+      <fileset dir=".">
+        <exclude name=".*" />
+        <exclude name="build.xml" />
+        <exclude name="build.number" />
+        <exclude name="plugin.properties" />
+        <exclude name="platform.properties" />
+        <exclude name="${plugin.id}-*.zip" />
+        <exclude name="src/**" />
+        <exclude name="classes/**" />
+        <exclude name="lib/rapidcontext*.jar" />
+        <exclude name="tmp/**" />
+      </fileset>
+    </zip>
+    <delete dir="tmp" quiet="true" />
+  </target>
+
+  <target name="package-clean">
+    <delete quiet="true">
+      <fileset dir=".">
+        <include name="${plugin.id}-*.zip" />
+        <include name="${plugin.id}-*.plugin" />
+      </fileset>
+    </delete>
+    <delete dir="tmp" quiet="true" />
+  </target>
+
+</project>

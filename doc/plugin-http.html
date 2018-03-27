@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html lang="en" xml:lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/xhtml; charset=UTF-8">
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/gif" href="images/favicon.png" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+    <link rel="stylesheet" href="css/widget.css" type="text/css" />
+    <title>RapidContext :: HTTP Plug-In</title>
+  </head>
+  <body class="doc">
+
+<div style="position: relative;">
+  <img src="images/logotype.png" alt="RapidContext Logotype" style="width: 128px; height: 128px;" />
+  <div style="position: absolute; top: 6px; left: 170px; font-family: Trebuchet MS;">
+    <a href="http://www.rapidcontext.com/" target="_blank">
+      <span style="font-size: 50px; color: #345;">RapidContext</span><br/>
+      <span style="font-size: 24px; color: #88AACC;">Access &gt; Discovery &gt; Insight</span><br/>
+      <span style="font-size: 18px; color: #666; letter-spacing: 6px; line-height: 24px;">www.rapidcontext.com</span><br/>
+    </a>
+  </div>
+</div>
+
+<table class="widgetNavigationBar" style="margin: 20px 0;">
+  <tr>
+    <td class="prev"><a href="index.html">Documentation</a></td>
+    <td class='prev-active'>&nbsp;</td>
+    <td class='active'>HTTP Plug-In</td>
+    <td class='active-end'>&nbsp;</td>
+  </tr>
+</table>
+
+<h1>HTTP Plug-In</h1>
+
+<!--START-->
+
+<p>The HTTP plug-in provides the ability to call external web servers or
+API:s through HTTP (HyperText Transport Protocol). This allows RapidContext
+to access simple web services or to retrieve remote content in a proxy-like
+way.</p>
+
+
+<h2>1. Built-in Procedure &amp; Procedure Type</h2>
+
+<p>The HTTP plug-in provides two ways to perform an HTTP request from the
+RapidContext server:</p>
+
+<ul class="box">
+  <li><strong>The <code>PlugIn.Http.Post</code> procedure</strong> &ndash;
+      A built-in procedure for performing an HTTP POST operation. Only
+      accessible to users in the <code>Admin</code> group. This procedure
+      should normally only be used for testing and development.</li>
+  <li><strong>Procedures of the <code>http.post</code> type</strong> &ndash;
+      Supports inserting procedure arguments into the HTTP headers or posted
+      data. Useful to enable limited HTTP POST access for normal users and
+      for storing web service calls.</li>
+</ul>
+
+<p>All the procedures return the HTTP response data content as a plain
+string. If the HTTP response code wasn't <code>200</code>, an error
+exception will be thrown by the procedures instead.</p>
+
+<p class="box"><strong>Note:</strong> The HTTP plug-in does currently not
+provide access to the HTTP response headers. Neither does it support other
+operations than <code>POST</code>.</p>
+
+
+<h2>2. Parameter Substitution</h2>
+
+<p>HTTP POST headers and data may contain procedure call arguments (for
+<code>http.post</code> procedures). These are substituted with the procedure
+argument values at call time. Each procedure argument name must be prefixed
+with a <code>:</code> character in order to be replaced:</p>
+
+<pre class="box code">
+<span class="comment"># Substituting a 'name' procedure argument</span>
+USERNAME=:name</pre>
+
+
+<!--END-->
+
+<div class="fineprint">
+  <hr>
+  Copyright &copy; 2007-2012 Per Cederberg. All rights reserved.
+</div>
+
+  </body>
+
+</html>

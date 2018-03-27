@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+# Start script for command-line RapidContext handling.
+#
+# See accompanying "init" script for installing as a permanent
+# service. This script is used for locating the Java environment
+# and launching the application.
+#
+
+# Change to base application directory
+PROGRAM="$0"
+SYMLINK="$PROGRAM"
+while [ "$SYMLINK" != "" ] ; do
+    cd `dirname $SYMLINK`
+    PROGRAM=`pwd -P`/`basename $SYMLINK`
+    SYMLINK=`readlink $PROGRAM`
+done
+cd ..
+
+# Verifies that a directory can serve as JAVA_HOME
+function is_java_dir {
+    DIR=$1
+    if [[ ! -x "$DIR/bin/java" ]] ; then
+        return 1
+    fi
+    if [[ (! -d "$DIR/jre") && (! -d "$DIR/lib") ]] ; then
+        return 2
+    fi
+    return 0
+}
+
+# Locate JAVA executable
+if is_java_dir $JAVA_HOME ; then
+    JAVA=$JAVA_HOME/bin/java
+elif [[ `which java` != "" ]] ; then
+    JAVA=`which java`
+elif [[ -x /System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home/bin/java ]] ; then
+    JAVA=/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home/bin/java
+else
+    JAVA_HOME=
+    for JAVA_EXE in `locate bin/java | grep java$ | xargs echo` ; do
+        JAVA_HOME=`dirname "$JAVA_EXE"`
+        JAVA_HOME=`dirname "$JAVA_HOME"`
+        if is_java_dir $JAVA_HOME ; then
+            break
+        else
+            JAVA_HOME=
+        fi
+    done
+    if [[ "$JAVA_HOME" == "" ]] ; then
+        echo "ERROR: Failed to find java version 1.4 or higher." >&2
+        exit 1
+    fi
+    JAVA=$JAVA_HOME/bin/java
+fi
+
+# Setup JAVA_OPTS variable
+JAVA_OPTS="-Xbootclasspath/p:lib/js-1.7R3.jar $JAVA_OPTS"
+case "$JAVA_OPTS" in
+(*-DDEBUG*)
+    JAVA_OPTS="$JAVA_OPTS -Djava.util.logging.config.file=lib/debug.properties"
+    echo "Base Dir:  " `pwd`
+    echo "JAVA:       $JAVA"
+    echo "JAVA_OPTS:  $JAVA_OPTS"
+    echo
+    ;;
+(*)
+    JAVA_OPTS="$JAVA_OPTS -Djava.util.logging.config.file=lib/logging.properties"
+    ;;
+esac
+
+# Create PID file for server mode
+case "$@" in
+*-serve*)
+    mkdir -p var
+    echo $$ > var/server.pid
+    ;;
+esac
+
+# Launch application
+exec "$JAVA" $JAVA_OPTS -jar lib/rapidcontext-*.jar "$@"

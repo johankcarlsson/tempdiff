@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project default="package">
+
+<!-- INITIALIZATION -->
+  <property file="build.properties" />
+  <tstamp>
+    <format property="build.date" pattern="yyyy-MM-dd" />
+  </tstamp>
+  <property name="build.version" value="${DSTAMP}" />
+  <property name="build.platform" value="${build.version}" />
+  <path id="build.classpath">
+    <fileset dir="lib" includes="**/*.jar" />
+  </path>
+  <property name="build.sysclasspath" value="ignore" />
+  <patternset id="pattern.srcfiles">
+    <include name="**/*.css" />
+    <include name="**/*.html" />
+    <include name="**/*.java" />
+    <include name="**/*.js" />
+    <include name="**/*.properties" />
+    <include name="**/*.sh" />
+    <include name="**/*.txt" />
+    <include name="**/*.xml" />
+    <exclude name="tools/**" />
+  </patternset>
+
+
+<!-- COMPILATION TARGETS -->
+  <target name="compile"
+          depends="compile-clean,compile-java,compile-plugins"
+          description="Compiles the application source code">
+    <pathconvert property="manifest.classpath" pathsep=" " refid="build.classpath">
+      <mapper type="flatten"/>
+    </pathconvert>
+    <jar jarfile="lib/${build.name}-${build.version}.jar" level="9">
+      <manifest>
+        <attribute name="Package-Title" value="${build.name}"/>
+        <attribute name="Package-Version" value="${build.version}"/>
+        <attribute name="Package-Date" value="${build.date}"/>
+        <attribute name="Class-Path" value="${manifest.classpath}"/>
+        <attribute name="Main-Class" value="${build.mainclass}"/>
+      </manifest>
+      <fileset dir="classes" />
+      <fileset dir="src/java" />
+    </jar>
+  </target>
+
+  <target name="compile-clean">
+    <delete quiet="true" includeemptydirs="true">
+      <fileset dir="classes" />
+      <fileset dir="lib" includes="${build.name}*.jar" />
+    </delete>
+    <mkdir dir="classes" />
+    <fixcrlf srcdir="." eol="unix" eof="remove" tab="remove">
+      <patternset refid="pattern.srcfiles" />
+    </fixcrlf>
+    <replaceregexp match="\s+$" replace="" flags="g" byline="true">
+      <fileset dir=".">
+        <patternset refid="pattern.srcfiles" />
+      </fileset>
+    </replaceregexp>
+  </target>
+
+  <target name="compile-java">
+    <javac srcdir="src/java"
+           destdir="classes"
+           classpathref="build.classpath"
+           target="1.5"
+           source="1.5"
+           debug="on"
+           deprecation="on">
+      <!-- TODO: Remove this hack once Java behaves properly -->
+      <compilerarg value="-Xbootclasspath/p:${basedir}/lib/js-1.7R3.jar" />
+    </javac>
+    <copy file="build.properties" todir="classes/org/rapidcontext/app/"/>
+    <propertyfile file="classes/org/rapidcontext/app/build.properties">
+      <entry key="build.version" value="${build.version}"/>
+      <entry key="build.date" value="${build.date}"/>
+    </propertyfile>
+    <copy todir="classes/org/rapidcontext/app/ui/">
+      <fileset dir="src/plugin/system/files/images">
+        <include name="*.png"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <macrodef name="buildplugin">
+    <attribute name="id" />
+    <sequential>
+      <path id="plugin.classpath">
+        <path refid="build.classpath" />
+        <pathelement location="classes" />
+      </path>
+      <ant dir="src/plugin/@{id}" antfile="../plugin-build.xml">
+        <property name="java.class.path" value="${toString:plugin.classpath}" />
+      </ant>
+      <delete quiet="true" includeemptydirs="true">
+        <fileset dir="plugin/@{id}" />
+        <fileset dir="plugin" includes="@{id}.zip" />
+      </delete>
+      <copy tofile="plugin/@{id}.zip">
+        <fileset dir="src/plugin/@{id}" includes="@{id}*.plugin" />
+      </copy>
+      <ant dir="src/plugin/@{id}" antfile="../plugin-build.xml" target="clean" />
+    </sequential>
+  </macrodef>
+
+  <target name="compile-plugins">
+    <buildplugin id="system" />
+    <buildplugin id="local" />
+    <buildplugin id="cmdline" />
+    <buildplugin id="http" />
+    <buildplugin id="jdbc" />
+    <buildplugin id="legacy" />
+    <buildplugin id="test" />
+    <mkdir dir="plugin/local" />
+    <unzip dest="plugin/local" src="plugin/local.zip" />
+    <delete file="plugin/local.zip" quiet="true" />
+  </target>
+
+
+<!-- DOCUMENTATION TARGETS -->
+  <target name="doc"
+          depends="doc-clean,doc-copy,doc-java,doc-js"
+          description="Generates the application documentation">
+    <zip destfile="doc.zip" basedir="doc" level="9">
+    </zip>
+  </target>
+
+  <target name="doc-clean">
+    <delete file="doc.zip" quiet="true" />
+    <delete dir="doc/java" quiet="true" includeemptydirs="true" />
+    <delete dir="doc/js" quiet="true" includeemptydirs="true" />
+    <mkdir dir="doc/java" />
+    <mkdir dir="doc/js" />
+  </target>
+
+  <target name="doc-copy">
+    <copy todir="doc">
+      <fileset dir="${basedir}">
+        <include name="README.txt" />
+        <include name="LICENSE.txt" />
+      </fileset>
+      <fileset dir="src/plugin/system/files">
+        <include name="images/favicon.png" />
+        <include name="images/logotype.png" />
+        <include name="images/backgrounds/navigation-*" />
+        <include name="css/**" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="doc-java">
+    <javadoc destdir="doc/java"
+             sourcepath="src/java"
+             classpathref="build.classpath"
+             version="true"
+             use="true"
+             author="true"
+             windowtitle="${build.title} ${build.version} Java API"
+             failonerror="true">
+      <group title="Application Layer" packages="${build.package}.app:${build.package}.app.*" />
+      <group title="Core Library Layer" packages="${build.package}.core:${build.package}.core.*" />
+      <group title="Utilities Layer" packages="${build.package}.util:${build.package}.util.*" />
+    </javadoc>
+  </target>
+
+  <target name="doc-js">
+    <property name="jsdoc.dir" value="${basedir}/tools/jsdoc-toolkit" />
+    <pathconvert property="jsdoc.files" pathsep=" ">
+      <fileset dir="src/plugin/system/files/js" includes="RapidContext*.js" />
+      <flattenmapper/>
+    </pathconvert>
+    <java jar="${jsdoc.dir}/jsrun.jar" fork="true" dir="src/plugin/system/files/js">
+      <sysproperty key="jsdoc.dir" value="${jsdoc.dir}" />
+      <arg value="${jsdoc.dir}/app/run.js" />
+      <arg value="-t=${jsdoc.dir}/templates/jsdoc" />
+      <arg value="-d=${basedir}/doc/js" />
+      <arg line="${jsdoc.files}" />
+    </java>
+  </target>
+
+
+<!-- PACKAGING TARGETS -->
+  <target name="package"
+          depends="compile,doc,package-clean,package-war,package-zip,package-mac"
+          description="Builds and packages the application for distribution">
+  </target>
+
+  <target name="package-clean">
+    <delete quiet="true" includeemptydirs="true">
+      <fileset dir="${basedir}">
+        <include name="${build.name}.war" />
+        <include name="${build.name}-*.zip" />
+      </fileset>
+      <fileset dir="${build.title}.app" />
+    </delete>
+  </target>
+
+  <target name="package-war">
+    <war destfile="${build.name}.war"
+         webxml="src/web/WEB-INF/web.xml"
+         level="9">
+      <lib dir="lib">
+        <exclude name="servlet-api.jar" />
+        <exclude name="jetty-*.jar" />
+        <exclude name="slf4j-*.jar" />
+      </lib>
+      <zipfileset dir="." includes="doc.zip" />
+      <zipfileset dir="plugin" prefix="plugin" />
+    </war>
+  </target>
+
+  <target name="package-zip">
+    <zip destfile="${build.name}-${build.version}.zip" level="9">
+      <zipfileset dir="${basedir}"
+                  prefix="${build.name}-${build.version}"
+                  filemode="755">
+        <include name="bin/*" />
+        <exclude name="bin/*.bat" />
+      </zipfileset>
+      <zipfileset dir="${basedir}" prefix="${build.name}-${build.version}">
+        <include name="README.txt" />
+        <include name="LICENSE.txt" />
+        <include name="bin/*.bat" />
+        <include name="*.war" />
+        <include name="lib/**" />
+        <include name="plugin/**" />
+        <include name="doc.zip" />
+      </zipfileset>
+      <zipfileset dir="src/plugin" prefix="${build.name}-${build.version}">
+        <include name="plugin-build.xml" />
+        <include name="plugin.properties.template" />
+      </zipfileset>
+    </zip>
+  </target>
+
+  <target name="package-mac">
+    <mkdir dir="${build.title}.app" />
+    <copy todir="${build.title}.app">
+      <fileset dir="src/mac/app" excludes="**/*.plist"/>
+    </copy>
+    <copy todir="${build.title}.app">
+      <fileset dir="src/mac/app" includes="**/*.plist"/>
+      <filterset filtersfile="build.properties" />
+      <filterset>
+        <filter token="build.version" value="${build.version}"/>
+        <filter token="build.date" value="${build.date}"/>
+      </filterset>
+    </copy>
+    <copy todir="${build.title}.app/Contents/Resources">
+      <fileset dir="${basedir}">
+        <include name="bin/rapidcontext" />
+        <include name="doc.zip" />
+        <include name="lib/**" />
+        <include name="plugin/**" />
+      </fileset>
+    </copy>
+    <chmod file="${build.title}.app/Contents/MacOS/start" perm="ugo+x" />
+    <chmod file="${build.title}.app/Contents/Resources/bin/rapidcontext" perm="ugo+x" />
+    <zip destfile="${build.name}-${build.version}-mac.zip" level="9">
+      <zipfileset dir="${basedir}" filemode="755">
+        <include name="${build.title}.app/**/MacOS/*" />
+        <include name="${build.title}.app/**/bin/*" />
+      </zipfileset>
+      <zipfileset dir="${basedir}">
+        <include name="${build.title}.app/**" />
+        <exclude name="${build.title}.app/**/MacOS/*" />
+        <exclude name="${build.title}.app/**/bin/*" />
+      </zipfileset>
+    </zip>
+  </target>
+
+</project>
