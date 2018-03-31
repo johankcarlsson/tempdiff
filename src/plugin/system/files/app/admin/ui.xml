@@ -528,6 +528,7 @@
           <TableColumn title="Identifier" field="id" sort="asc" key="true" />
           <TableColumn title="Name" field="name" />
           <TableColumn title="Enabled" field="enabled" type="boolean" />
+          <TableColumn title="Admin" field="admin" type="boolean" />
           <TableColumn title="Description" field="description" maxLength="40" />
         </Table>
       </div>
@@ -561,6 +562,12 @@
               <th class="label" style="padding-top: 2px; padding-right: 4px;">Enabled:</th>
               <td>
                 <input type="checkbox" name="enabled" />
+              </td>
+            </tr>
+            <tr>
+              <th class="label" style="padding-top: 2px; padding-right: 4px;">Admin:</th>
+              <td>
+                <input type="checkbox" name="admin" />
               </td>
             </tr>
             <tr>

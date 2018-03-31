@@ -21,7 +21,6 @@ import org.rapidcontext.core.proc.CallContext;
 import org.rapidcontext.core.proc.Interceptor;
 import org.rapidcontext.core.proc.Procedure;
 import org.rapidcontext.core.proc.ProcedureException;
-
 /**
  * A security procedure call interceptor. This interceptor checks
  * for procedure and connection permissions before allowing any

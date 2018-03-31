@@ -105,6 +105,28 @@ public class Array {
         return buffer.toString();
     }
 
+    public String prettyPrint() {
+        StringBuilder  buffer = new StringBuilder();
+        int            len = size();
+
+        buffer.append("[");
+        for (int i = 0; i < len; i++) {
+                Object value = list.get(i);
+            if (i > 0) {
+                buffer.append(", ");
+            }
+            if(value instanceof Dict){
+                ((Dict) value).prettyPrint();
+                buffer.append(((Dict) value).prettyPrint());
+            }else{
+                buffer.append(list.get(i));
+            }
+
+        }
+        buffer.append("]");
+        return buffer.toString();
+    }
+
     /**
      * Creates a copy of this array. The copy is a "deep copy", as
      * all dictionary and array values will be recursively copied.

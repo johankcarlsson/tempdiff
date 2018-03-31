@@ -35,6 +35,7 @@ public class Role extends StorableObject {
      * The dictionary key for the role name.
      */
     public static final String KEY_NAME = "name";
+    public static final String KEY_GROUP = "group";
 
     /**
      * The dictionary key for the role description.
@@ -102,8 +103,22 @@ public class Role extends StorableObject {
         super(id, type, dict);
         dict.set(KEY_NAME, name());
         dict.set(KEY_DESCRIPTION, description());
+        dict.set(KEY_GROUP, group());
     }
 
+    /**
+     * Returns the group variable string representing Active Directory
+     * group names (CN or Common Names) from the .properties file
+     * of the given Role. It may be one or many groups separated
+     * by commas.
+     *
+     * @author skogsberg02, persson21
+     * @category AD Integration
+     * @return group name
+     */
+    public String group(){
+        return dict.getString(KEY_GROUP, "");
+    }
     /**
      * Returns the role name.
      *

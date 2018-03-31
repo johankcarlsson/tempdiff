@@ -16,12 +16,19 @@ package org.rapidcontext.core.security;
 
 import java.util.logging.Logger;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.time.DateUtils;
+import org.rapidcontext.core.configuration.Configuration;
+import org.rapidcontext.core.data.Dict;
 import org.rapidcontext.core.proc.Procedure;
+import org.rapidcontext.core.security.impl.ADSecurityContext;
+import org.rapidcontext.core.security.impl.SecurityContextInterface;
+import org.rapidcontext.core.security.impl.StorageSecurityContext;
 import org.rapidcontext.core.storage.Storage;
 import org.rapidcontext.core.storage.StorageException;
 import org.rapidcontext.core.type.Role;
 import org.rapidcontext.core.type.User;
+import org.rapidcontext.core.web.Request;
 import org.rapidcontext.util.BinaryUtil;
 
 /**
@@ -55,7 +62,14 @@ public class SecurityContext {
      * is set to null, no user is currently authenticated for the
      * thread.
      */
-    private static ThreadLocal authUser = new ThreadLocal();
+    private static ThreadLocal<User> authUser = new ThreadLocal<User>();
+
+    private static Configuration configuration;
+
+    private static SecurityContextInterface context;
+
+    public static enum RealmType {DIGEST, BASIC};
+
 
     /**
      * Initializes the security context. It can be called multiple
@@ -80,6 +94,13 @@ public class SecurityContext {
             user.setEnabled(true);
             user.setRoles(new String[] { "admin" });
             User.store(dataStorage, user);
+        }
+        try{
+                configuration = Configuration.getInstance();
+                String modulePackage = SecurityContextInterface.class.getPackage().getName();
+                context = (SecurityContextInterface) Class.forName(String.format("%s.%s", modulePackage,configuration.loginModule())).newInstance();
+        }catch(Exception e){
+                throw new StorageException(e.getMessage());
         }
         // TODO: create default system user?
     }
@@ -196,27 +217,6 @@ public class SecurityContext {
     }
 
     /**
-     * Verifies that the specified nonce is sufficiently recently
-     * generated to be acceptable.
-     *
-     * @param nonce          the nonce to check
-     *
-     * @throws SecurityException if the nonce was invalid
-     */
-    public static void verifyNonce(String nonce) throws SecurityException {
-        try {
-            long since = System.currentTimeMillis() - Long.parseLong(nonce);
-            if (since > DateUtils.MILLIS_PER_MINUTE * 240) {
-                LOG.info("stale authentication one-off number");
-                throw new SecurityException("stale authentication one-off number");
-            }
-        } catch (NumberFormatException e) {
-            LOG.info("invalid authentication one-off number");
-            throw new SecurityException("invalid authentication one-off number");
-        }
-    }
-
-    /**
      * Authenticates the specified user. This method will verify
      * that the user exists and is enabled. It should only be called
      * if a previous user authentication can be trusted, either via
@@ -310,4 +310,22 @@ public class SecurityContext {
         }
         User.store(dataStorage, user);
     }
+
+    public static void authorizeUser(Request request, Dict auth) throws SecurityException {
+
+        try{
+                context.authorizeUser(request, auth, authUser, dataStorage);
+        }catch(Exception e){
+                throw new SecurityException(e);
+        }
+    }
+
+    public static RealmType getRealmType(){
+        return context.getRealmType();
+    }
+
+    public static Dict getAuthData(Request req){
+        return context.getAuthData(req);
+    }
+
 }

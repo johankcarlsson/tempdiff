@@ -74,6 +74,11 @@ public class User extends StorableObject {
     public static final String KEY_ROLE = "role";
 
     /**
+     * The dictionary key for the admin flag
+     */
+    public static final String KEY_ADMIN = "admin";
+
+    /**
      * The user object storage path.
      */
     public static final Path PATH = new Path("/user/");
@@ -88,7 +93,7 @@ public class User extends StorableObject {
      *         null if not found
      */
     public static User find(Storage storage, String id) {
-        Object obj = storage.load(PATH.descendant(new Path(id)));
+        Object obj = storage.load(PATH.descendant(new Path(id.toLowerCase())));
         return (obj instanceof User) ? (User) obj : null;
     }
 
@@ -103,7 +108,7 @@ public class User extends StorableObject {
     public static void store(Storage storage, User user)
         throws StorageException {
 
-        storage.store(PATH.child(user.id(), false), user);
+        storage.store(PATH.child(user.id().toLowerCase(), false), user);
     }
 
     /**
@@ -118,6 +123,7 @@ public class User extends StorableObject {
         dict.set(KEY_NAME, name());
         dict.set(KEY_DESCRIPTION, description());
         dict.setBoolean(KEY_ENABLED, isEnabled());
+        dict.setBoolean(KEY_ADMIN, isAdmin());
         dict.set(KEY_REALM, realm());
         dict.set(KEY_PASSWORD, getPasswordHash());
     }
@@ -135,8 +141,15 @@ public class User extends StorableObject {
         dict.setBoolean(KEY_ENABLED, isEnabled());
         dict.set(KEY_REALM, realm());
         dict.set(KEY_PASSWORD, getPasswordHash());
+        dict.setBoolean(KEY_ADMIN, isAdmin());
     }
-
+    /** Checks that the user has admin priviliges
+     *
+     * @return true if user is enabled as admin
+     */
+    public boolean isAdmin() {
+        return dict.getBoolean(KEY_ADMIN, false);
+    }
     /**
      * Returns the user name.
      *
@@ -181,6 +194,14 @@ public class User extends StorableObject {
      */
     public boolean isEnabled() {
         return dict.getBoolean(KEY_ENABLED, true);
+    }
+    /**
+     * Sets the admin flag.
+     *
+     * @param enabled        the enabled flag
+     */
+    public void setAdmin(boolean admin){
+        dict.set(KEY_ADMIN, admin);
     }
 
     /**
@@ -240,6 +261,10 @@ public class User extends StorableObject {
         dict.set(KEY_PASSWORD, passwordHash.toLowerCase());
     }
 
+    //Without Hashing
+    public void setEasyPassword(String password){
+        dict.set(KEY_PASSWORD, password);
+    }
     /**
      * Sets the user password. This method will create a password
      * MD5 hash from the string "id:realm:password" and store that

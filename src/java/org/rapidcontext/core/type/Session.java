@@ -105,7 +105,7 @@ public class Session extends StorableObject {
      */
     // TODO: Remove this variable and use some other mechanism to
     //       store request, session and context information.
-    public static ThreadLocal activeSession = new ThreadLocal();
+    public static ThreadLocal<Session> activeSession = new ThreadLocal<Session>();
 
     /**
      * The modified data flag.

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +28,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
@@ -34,6 +36,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang.StringUtils;
 import org.rapidcontext.core.data.Binary;
 import org.rapidcontext.core.data.Dict;
+import org.rapidcontext.core.security.SecurityContext.RealmType;
 import org.rapidcontext.util.FileUtil;
 import org.rapidcontext.util.HttpUtil;
 
@@ -357,11 +360,11 @@ public class Request implements HttpUtil {
         String[]  pairs;
         String[]  pair;
         Dict      dict = new Dict();
-
         if (auth == null || !auth.contains(" ")) {
             return null;
         } else {
             pairs = auth.split("[ \t\n\r,]");
+
             dict.set("type", pairs[0]);
             for (int i = 1; i < pairs.length; i++) {
                 pair = pairs[i].split("=");
@@ -373,6 +376,38 @@ public class Request implements HttpUtil {
             }
             return dict;
         }
+    }
+    /**
+     * Returns the parsed "Authorization" request header data (from the Servlet
+     * challenge-response to the client).
+     * The parsed data is decoded using the Base64 encoding scheme in
+     * order to provide the Active Directory authentication mechanism
+     * with a clear-text password instead of a hash.
+     *
+     * @category        AD Integration
+     * @return          the parsed authentication data, or
+     *                  null if not present
+     */
+    public Dict getBasicAuthentication(){
+        String    auth = request.getHeader("Authorization");
+        Dict      dict = new Dict();
+        if(auth==null || !auth.contains(" ")){
+                return null;
+        } else {
+        String base64Credentials = auth.substring("Basic".length()).trim();
+        Base64 base64 = new Base64();
+        String credentials = new String(base64.decode(base64Credentials),
+                Charset.forName("UTF-8"));
+        final String[] values = credentials.split(":",2);
+        if(values.length!=2){
+                return null;
+        }else{
+                dict.set("username", values[0]);
+                dict.set("password", values[1]);
+        }
+        }
+                return dict;
+
     }
 
     /**
@@ -580,19 +615,34 @@ public class Request implements HttpUtil {
     }
 
     /**
-     * Sends a digest authentication request as the request response.
+     * MODIFIED: Sends a basic authentication request as the request response.
      * Any previous response will be cleared.
      *
+     * @category                        AD Integration
      * @param realm          the security realm to use
-     * @param nonce          the generated one-time code to use
+     * @param nonce          (NOT USED)the generated one-time code to use
      *
      * @see #sendClear()
      */
-    public void sendAuthenticationRequest(String realm, String nonce) {
+    /**
+     * @param realm
+     */
+    public void sendAuthenticationRequest(String realm, String nonce, RealmType realmType) {
         sendClear();
         responseType = AUTH_RESPONSE;
-        responseData = "Digest realm=\"" + realm + "\", qop=\"auth\", " +
-                       "nonce=\"" + nonce+ "\"";
+
+        switch(realmType){
+                        case BASIC:
+                                responseData = "Basic realm=\"" + realm + "\"";
+                                break;
+                        case DIGEST:
+                                responseData = "Digest realm=\"" + realm + "\", qop=\"auth\", " +
+                               "nonce=\"" + nonce+ "\"";
+                                break;
+                        default:
+                                throw new SecurityException("Illegal realmtype");
+        }
+
     }
 
     /**

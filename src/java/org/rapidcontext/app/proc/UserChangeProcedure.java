@@ -60,6 +60,7 @@ public class UserChangeProcedure implements Procedure, Restricted {
                      "The new password, or blank for unchanged");
         defaults.set("roles", Bindings.ARGUMENT, "",
                      "The list of roles (separated by spaces)");
+        defaults.set("admin", Bindings.ARGUMENT, "", "The enabled flag (0 or 1)");
         defaults.seal();
     }
 
@@ -133,6 +134,7 @@ public class UserChangeProcedure implements Procedure, Restricted {
         Array     list;
         String    str;
         Object    obj;
+        boolean   admin;
 
         // Validate arguments
         id = bindings.getValue("id").toString();
@@ -146,6 +148,7 @@ public class UserChangeProcedure implements Procedure, Restricted {
         descr = bindings.getValue("description").toString();
         str = bindings.getValue("enabled").toString();
         enabled = (!str.equals("") && !str.equals("false") && !str.equals("0"));
+        admin = bindings.getValue("admin").toString().equals("1");
         pwd = bindings.getValue("password").toString();
         if ((user == null || pwd.length() > 0) && pwd.length() < 5) {
             throw new ProcedureException("password must be at least 5 characters");
@@ -171,7 +174,9 @@ public class UserChangeProcedure implements Procedure, Restricted {
         user.setName(name);
         user.setDescription(descr);
         user.setEnabled(enabled);
+        user.setAdmin(admin);
         if (pwd.length() > 0) {
+//            user.setEasyPassword(pwd);
             user.setPassword(pwd);
         }
         user.setRoles(roles);

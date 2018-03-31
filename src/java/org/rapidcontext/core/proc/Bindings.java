@@ -15,7 +15,9 @@
 
 package org.rapidcontext.core.proc;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 import org.rapidcontext.core.data.Array;
 import org.rapidcontext.core.data.Dict;
@@ -365,5 +367,33 @@ public class Bindings {
             }
         }
         return -1;
+    }
+
+    public String argumentBindingsToString() throws ProcedureException{
+        String[] names = getNames();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+
+        for(int i = 0; i<names.length; i++){
+            String name = names[i];
+            if(getType(name) == ARGUMENT){
+                Object value;
+
+                try{
+                        value = getValue(name);
+                }catch(Exception e){
+                        value = "";
+                }
+                sb.append(name);
+                sb.append(" = ");
+                sb.append(value);
+                sb.append(", ");
+            }
+        }
+        int idx = sb.lastIndexOf(",");
+        if(idx != -1)sb.deleteCharAt(idx);
+        sb.append("}");
+
+        return sb.toString();
     }
 }

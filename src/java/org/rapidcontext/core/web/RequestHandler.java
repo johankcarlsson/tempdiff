@@ -196,7 +196,7 @@ public abstract class RequestHandler implements HttpUtil {
     protected void errorUnauthorized(Request request) {
         if (SecurityContext.currentUser() == null) {
             request.sendAuthenticationRequest(User.DEFAULT_REALM,
-                                              SecurityContext.nonce());
+                        SecurityContext.nonce(), SecurityContext.getRealmType());
         } else {
             errorForbidden(request);
         }

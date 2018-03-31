@@ -43,7 +43,6 @@ import org.rapidcontext.core.type.User;
 import org.rapidcontext.core.web.Mime;
 import org.rapidcontext.core.web.Request;
 import org.rapidcontext.core.web.RequestHandler;
-import org.rapidcontext.util.BinaryUtil;
 import org.rapidcontext.util.FileUtil;
 
 /**
@@ -133,7 +132,6 @@ public class ServletApplication extends HttpServlet {
      */
     protected void service(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
-
         Request         request = new Request(req, resp);
         Iterator        iter = handlers.keySet().iterator();
         String          path = request.getPath();
@@ -173,7 +171,9 @@ public class ServletApplication extends HttpServlet {
      * request response may be set if the request has been handled,
      * for instance by returning an HTTP authentication request.
      * On successful authentication, the current user will be set
-     * but the request will not contain a response.
+     * but the request will not contain a response. (This method has
+     * been modified to work with the basic authentication mechanism
+     * introduced in RapidContext for the Active Directory Integration.
      *
      * @param request        the request to process
      */
@@ -200,11 +200,15 @@ public class ServletApplication extends HttpServlet {
             if (userId != null) {
                 SecurityContext.auth(userId);
             } else if (isAuthRequired(request)) {
-                authData = request.getAuthentication();
+//                authData = request.getAuthentication();
+                //get authentication credentials using the the Basic authentication version
+                authData = SecurityContext.getAuthData(request);
                 if (authData != null) {
-                    processAuthResponse(request, authData);
+                    //processAuthResponse(request, authData);
+                        processAuthResponse(request, authData);
                 }
             }
+
         } catch (Exception e) {
             LOG.info(ip(request) + e.getMessage());
         }
@@ -219,7 +223,7 @@ public class ServletApplication extends HttpServlet {
         }
         if (user == null && isAuthRequired(request)) {
             request.sendAuthenticationRequest(User.DEFAULT_REALM,
-                                              SecurityContext.nonce());
+                        SecurityContext.nonce(), SecurityContext.getRealmType());
         }
     }
 
@@ -245,41 +249,23 @@ public class ServletApplication extends HttpServlet {
     }
 
     /**
-     * Processes a digest authentication response.
+     * Process an authentication request given the Basic HTTP response credentials
      *
-     * @param request        the request to process
-     * @param auth           the authentication data
-     *
-     * @throws Exception if the user authentication failed
+     * @author                          skogsberg02, persson21
+     * @category                        AD Integration
+     * @param request           the request to process
+     * @param auth                      the authentication credentials to process
      */
-    private void processAuthResponse(Request request, Dict auth)
-    throws Exception {
-        String  uri = auth.getString("uri", request.getAbsolutePath());
-        String  user = auth.getString("username", "");
-        String  realm = auth.getString("realm", "");
-        String  nonce = auth.getString("nonce", "");
-        String  nc = auth.getString("nc", "");
-        String  cnonce = auth.getString("cnonce", "");
-        String  response = auth.getString("response", "");
-        String  suffix;
+    private void processAuthResponse(Request request, Dict auth) throws Exception{
+        String username = auth.getString("username", "");
 
-        // Verify authentication response
-        if (!User.DEFAULT_REALM.equals(realm)) {
-            LOG.info(ip(request) + "Invalid authentication realm: " + realm);
-            throw new SecurityException("Invalid authentication realm");
-        }
-        SecurityContext.verifyNonce(nonce);
-        suffix = ":" + nonce + ":" + nc + ":" + cnonce + ":auth:" +
-                 BinaryUtil.hashMD5(request.getMethod() + ":" + uri);
-        SecurityContext.authHash(user, suffix, response);
-        LOG.fine(ip(request) + "Valid authentication for " + user);
-
+        SecurityContext.authorizeUser(request, auth);
         // Create new session (if applicable)
         String client = request.getHeader("User-Agent");
         // TODO: Improve logic for when to use sessions
         if (client.contains("Mozilla") || client.contains("MSIE")) {
             String ip = request.getRemoteAddr();
-            Session session = new Session(user, ip, client);
+            Session session = new Session(username, ip, client);
             Session.activeSession.set(session);
             try {
                 Session.store(ctx.getStorage(), session);
@@ -292,6 +278,55 @@ public class ServletApplication extends HttpServlet {
             }
         }
     }
+
+    /**
+     * Processes a digest authentication response.
+     *
+     * @param request        the request to process
+     * @param auth           the authentication data
+     *
+     * @throws Exception if the user authentication failed
+     */
+//    private void processAuthResponse(Request request, Dict auth)
+//    throws Exception {
+//        String  uri = auth.getString("uri", request.getAbsolutePath());
+//        String  user = auth.getString("username", "");
+//        String  realm = auth.getString("realm", "");
+//        String  nonce = auth.getString("nonce", "");
+//        String  nc = auth.getString("nc", "");
+//        String  cnonce = auth.getString("cnonce", "");
+//        String  response = auth.getString("response", "");
+//        String  suffix;
+//        // Verify authentication response
+//
+//        if (!User.DEFAULT_REALM.equals(realm)) {
+//            LOG.info(ip(request) + "Invalid authentication realm: " + realm);
+//            throw new SecurityException("Invalid authentication realm");
+//        }
+//        SecurityContext.verifyNonce(nonce);
+//        suffix = ":" + nonce + ":" + nc + ":" + cnonce + ":auth:" +
+//                 BinaryUtil.hashMD5(request.getMethod() + ":" + uri);
+//        SecurityContext.authHash(user, suffix, response);
+//        LOG.fine(ip(request) + "Valid authentication for " + user);
+//
+//        // Create new session (if applicable)
+//        String client = request.getHeader("User-Agent");
+//        // TODO: Improve logic for when to use sessions
+//        if (client.contains("Mozilla") || client.contains("MSIE")) {
+//            String ip = request.getRemoteAddr();
+//            Session session = new Session(user, ip, client);
+//            Session.activeSession.set(session);
+//            try {
+//                Session.store(ctx.getStorage(), session);
+//                long destroy = session.destroyTime().getTime();
+//                long now = System.currentTimeMillis();
+//                int expiry = (int) ((destroy - now) / 1000);
+//                request.setSessionId(session.id(), expiry);
+//            } catch (Exception e) {
+//                LOG.log(Level.WARNING, ip(request) + "Failed to store session", e);
+//            }
+//        }
+//    }
 
     /**
      * Returns an IP address tag suitable for logging.

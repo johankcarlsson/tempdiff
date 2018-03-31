@@ -110,6 +110,32 @@ public class Dict {
         return buffer.toString();
     }
 
+    public String prettyPrint(){
+        StringBuilder   buffer = new StringBuilder();
+        String[]        keys;
+
+        buffer.append("\n{");
+        keys = keys();
+        for (int i = 0; i < keys.length; i++) {
+                Object value = map.get(keys[i]);
+
+            if (i > 0) {
+                buffer.append(", ");
+            }
+            buffer.append(keys[i]);
+            buffer.append(": ");
+            if(value instanceof Array){
+                buffer.append(((Array) value).prettyPrint());
+            }else{
+                buffer.append((CharSequence) map.get(keys[i]));
+            }
+
+        }
+
+        buffer.append("}");
+        return buffer.toString();
+    }
+
     /**
      * Creates a copy of this dictionary. The copy is a "deep copy",
      * as all dictionary and array values will be recursively copied.

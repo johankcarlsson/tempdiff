@@ -14,12 +14,16 @@
 
 package org.rapidcontext.app.proc;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import org.rapidcontext.core.proc.Bindings;
 import org.rapidcontext.core.proc.CallContext;
 import org.rapidcontext.core.proc.Procedure;
 import org.rapidcontext.core.proc.ProcedureException;
+import org.rapidcontext.core.security.AuditLogger;
 import org.rapidcontext.core.security.Restricted;
 import org.rapidcontext.core.security.SecurityContext;
+import org.rapidcontext.core.type.Session;
 
 /**
  * The built-in procedure delete procedure.
@@ -28,6 +32,11 @@ import org.rapidcontext.core.security.SecurityContext;
  * @version  1.0
  */
 public class ProcedureDeleteProcedure implements Procedure, Restricted {
+
+        /**
+         * Audit logger
+         */
+    private static final AuditLogger auditLogger = new AuditLogger();
 
     /**
      * The procedure name constant.
@@ -115,6 +124,9 @@ public class ProcedureDeleteProcedure implements Procedure, Restricted {
             throw new ProcedureException("invalid procedure name");
         }
         cx.getLibrary().deleteProcedure(name);
+
+        auditLogger.info("User: " + SecurityContext.currentUser().id() + " deleted procedure: " + name, "Delete Procedure");
+
         return null;
     }
 }

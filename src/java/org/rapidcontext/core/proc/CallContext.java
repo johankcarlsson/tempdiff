@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.rapidcontext.core.security.AuditLogger;
+import org.rapidcontext.core.security.SecurityContext;
 import org.rapidcontext.core.storage.Storage;
 import org.rapidcontext.core.type.Channel;
 import org.rapidcontext.core.type.Connection;
@@ -45,6 +47,11 @@ public class CallContext {
      */
     private static final Logger LOG =
         Logger.getLogger(CallContext.class.getName());
+
+    /**
+     * The audit logger
+     */
+    private static final AuditLogger auditLogger = new AuditLogger();
 
     /**
      * The attribute used for storing the execution root procedure.
@@ -427,6 +434,10 @@ public class CallContext {
                   "'; expected " + pos + ", found " + args.length;
             throw new ProcedureException(msg);
         }
+
+        auditLogger.info("User: " + SecurityContext.currentUser().id() +
+                " called procedure: " + proc.getName() + " with arguments: " + callBindings.argumentBindingsToString(),
+                "Call Procedure");
         return call(proc, callBindings);
     }
 

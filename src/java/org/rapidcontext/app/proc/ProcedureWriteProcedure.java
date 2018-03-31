@@ -14,13 +14,19 @@
 
 package org.rapidcontext.app.proc;
 
+import java.security.Security;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import org.rapidcontext.core.data.Dict;
 import org.rapidcontext.core.proc.Bindings;
 import org.rapidcontext.core.proc.CallContext;
 import org.rapidcontext.core.proc.Procedure;
 import org.rapidcontext.core.proc.ProcedureException;
+import org.rapidcontext.core.security.AuditLogger;
 import org.rapidcontext.core.security.Restricted;
 import org.rapidcontext.core.security.SecurityContext;
+import org.rapidcontext.core.type.Session;
 
 /**
  * The built-in procedure write procedure.
@@ -30,6 +36,7 @@ import org.rapidcontext.core.security.SecurityContext;
  */
 public class ProcedureWriteProcedure implements Procedure, Restricted {
 
+    private static final AuditLogger auditLogger = new AuditLogger();
     /**
      * The procedure name constant.
      */
@@ -119,6 +126,8 @@ public class ProcedureWriteProcedure implements Procedure, Restricted {
         String     name;
         Procedure  proc;
 
+
+
         name = ((String) bindings.getValue("name")).trim();
         if (name.length() == 0) {
             throw new ProcedureException("invalid procedure name");
@@ -128,6 +137,11 @@ public class ProcedureWriteProcedure implements Procedure, Restricted {
         data.set("description", bindings.getValue("description", ""));
         data.set("binding", bindings.getValue("bindings"));
         proc = cx.getLibrary().storeProcedure(data);
+
+
+        auditLogger.info("User: " + SecurityContext.currentUser().id() + " modified procedure: " + name, "Write Procedure");
+        auditLogger.info("New Procedure data: " + data.prettyPrint(), "Write Procedure");
+
         return ProcedureReadProcedure.getProcedureData(cx.getLibrary(), proc);
     }
 }
